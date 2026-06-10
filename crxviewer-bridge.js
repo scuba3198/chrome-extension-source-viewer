@@ -150,6 +150,42 @@
         }
     }
 
+    function handleAutoDownload(zipDownloadUrl, computedZipName) {
+        if (getParam('auto-download') === '1') {
+            if (typeof chrome !== 'undefined' && chrome.downloads) {
+                chrome.downloads.onCreated.addListener(function createdListener(downloadItem) {
+                    if (downloadItem.byExtensionId === chrome.runtime.id) {
+                        chrome.downloads.onCreated.removeListener(createdListener);
+                        const downloadId = downloadItem.id;
+                        chrome.downloads.onChanged.addListener(function changedListener(delta) {
+                            if (delta.id === downloadId && delta.state) {
+                                if (delta.state.current === 'complete' || delta.state.current === 'interrupted') {
+                                    chrome.downloads.onChanged.removeListener(changedListener);
+                                    window.close();
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
+            const autoLink = document.createElement('a');
+            autoLink.href = zipDownloadUrl;
+            autoLink.download = computedZipName;
+            document.body.appendChild(autoLink);
+            autoLink.click();
+            document.body.removeChild(autoLink);
+
+            if (typeof chrome === 'undefined' || !chrome.downloads) {
+                setTimeout(function() {
+                    window.close();
+                }, 3000);
+            }
+            return true;
+        }
+        return false;
+    }
+
     function loadZip(urlOrBlob) {
         // Clean up previous active zip reader/workers to prevent resource leakage
         if (activeZipReader) {
@@ -197,6 +233,10 @@
                 currentZipObjectUrl = URL.createObjectURL(zipBlob);
                 const zipDownloadUrl = currentZipObjectUrl;
 
+                if (handleAutoDownload(zipDownloadUrl, computedZipName)) {
+                    return;
+                }
+
                 let crxDownloadUrl = null;
                 if (raw_crx_data) {
                     const crxBlob = new Blob([raw_crx_data], { type: 'application/octet-stream' });
@@ -235,6 +275,10 @@
                 cleanupObjectUrls();
                 currentZipObjectUrl = URL.createObjectURL(blob);
                 const zipDownloadUrl = currentZipObjectUrl;
+
+                if (handleAutoDownload(zipDownloadUrl, computedZipName)) {
+                    return;
+                }
 
                 zip.createReader(new zip.BlobReader(blob), function(zipReader) {
                     activeZipReader = zipReader;
