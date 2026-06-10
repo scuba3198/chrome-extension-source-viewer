@@ -170,8 +170,8 @@
             chrome.storage.sync.set({actionClickAction: choice});
             return;
         }
-        var url = info.menuItemId == MENU_ID_PAGE ||
-           info.menuItemId == MENU_ID_AMO_APPROVED_PAGE ? info.pageUrl : info.linkUrl;
+        var url = info.menuItemId === MENU_ID_PAGE ||
+           info.menuItemId === MENU_ID_AMO_APPROVED_PAGE ? info.pageUrl : info.linkUrl;
         getPlatformInfoAsync(function() {
             url = get_crx_url(url);
             openCrxViewerRelatedToTab(url, tab);

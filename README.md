@@ -29,6 +29,13 @@ Since this is a customized developer version, you can install it using Developer
 - **Popup Quick Actions**: Click the extension icon in your toolbar when on an extension store page (Chrome Web Store, AMO, Edge Add-ons, etc.) to quickly download the extension as a ZIP or view its source.
 - **Safe Background Downloads**: Employs a robust background-tab processing strategy to fetch, compile, and download ZIP files without being aborted by popup closure.
 
+## Technical Architecture
+
+The core viewer UI (crxviewer.html / crxviewer.js) has been refactored into the Elm language (v0.19.1) to achieve robust state management and ensure type safety.
+- **Elm Architecture (TEA):** Elm handles all UI state, rendering, search filtering, and view modes.
+- **Port Bridges:** Heavy or specialized tasks (such as unzipping with zip.js, beautifying JS/CSS, and Prism syntax highlighting) are handled in JavaScript and bridged via Elm Ports.
+
 ## License
 
 This project is licensed under the MIT License.
+

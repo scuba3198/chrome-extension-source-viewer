@@ -21,7 +21,7 @@ contextmenuPatternsInput.oninput = function() {
     this.value.split('\n').every(function(line, i) {
         line = line.trim();
         if (!line) {
-            return;
+            return true;
         }
         if (!/^(\*|https?|ftp|file|data):\/\/\*?[^/*]*\//.test(line)) {
             errorMsg = 'Invalid URL pattern at line ' + (i + 1) + ': ' + line;

@@ -70,12 +70,12 @@ function ready() {
 }
 
 function ready2() {
-    if (gActionClickAction == 'popup') {
+    if (gActionClickAction === 'popup') {
         // Default action is keeping this popup open.
         // Nothing else left to do.
-    } else if (gActionClickAction == 'download') {
+    } else if (gActionClickAction === 'download') {
         doDownload();
-    } else if (gActionClickAction == 'view-source') {
+    } else if (gActionClickAction === 'view-source') {
         doViewSource();
     }
 }
