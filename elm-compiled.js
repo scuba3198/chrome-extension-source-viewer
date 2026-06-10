@@ -784,11 +784,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region._.L === region.af.L)
+	if (region.af.R === region.al.R)
 	{
-		return 'on line ' + region._.L;
+		return 'on line ' + region.af.R;
 	}
-	return 'on lines ' + region._.L + ' through ' + region.af.L;
+	return 'on lines ' + region.af.R + ' through ' + region.al.R;
 }
 
 
@@ -1861,9 +1861,9 @@ var _Platform_worker = F4(function(impl, flagDecoder, debugMetadata, args)
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.aK,
-		impl.aT,
-		impl.aR,
+		impl.aS,
+		impl.a$,
+		impl.aZ,
 		function() { return function() {} }
 	);
 });
@@ -2728,8 +2728,8 @@ var _VirtualDom_mapEventRecord = F2(function(func, record)
 {
 	return {
 		s: func(record.s),
-		aa: record.aa,
-		Y: record.Y
+		ag: record.ag,
+		ad: record.ad
 	}
 });
 
@@ -2998,10 +2998,10 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
 
 		var value = result.a;
 		var message = !tag ? value : tag < 3 ? value.a : value.s;
-		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.aa;
+		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.ag;
 		var currentEventNode = (
 			stopPropagation && event.stopPropagation(),
-			(tag == 2 ? value.b : tag == 3 && value.Y) && event.preventDefault(),
+			(tag == 2 ? value.b : tag == 3 && value.ad) && event.preventDefault(),
 			eventNode
 		);
 		var tagger;
@@ -3951,11 +3951,11 @@ var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debug
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.aK,
-		impl.aT,
-		impl.aR,
+		impl.aS,
+		impl.a$,
+		impl.aZ,
 		function(sendToApp, initialModel) {
-			var view = impl.aV;
+			var view = impl.a1;
 			/**/
 			var domNode = args['node'];
 			//*/
@@ -3987,12 +3987,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.aK,
-		impl.aT,
-		impl.aR,
+		impl.aS,
+		impl.a$,
+		impl.aZ,
 		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.Z && impl.Z(sendToApp)
-			var view = impl.aV;
+			var divertHrefToApp = impl.ae && impl.ae(sendToApp)
+			var view = impl.a1;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
 			var currNode = _VirtualDom_virtualize(bodyNode);
@@ -4000,12 +4000,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 			{
 				_VirtualDom_divertHrefToApp = divertHrefToApp;
 				var doc = view(model);
-				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.aD);
+				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.aL);
 				var patches = _VirtualDom_diff(currNode, nextNode);
 				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
 				currNode = nextNode;
 				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.aS) && (_VirtualDom_doc.title = title = doc.aS);
+				(title !== doc.a_) && (_VirtualDom_doc.title = title = doc.a_);
 			});
 		}
 	);
@@ -4061,12 +4061,12 @@ function _Browser_makeAnimator(model, draw)
 
 function _Browser_application(impl)
 {
-	var onUrlChange = impl.aN;
-	var onUrlRequest = impl.aO;
+	var onUrlChange = impl.aV;
+	var onUrlRequest = impl.aW;
 	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
 
 	return _Browser_document({
-		Z: function(sendToApp)
+		ae: function(sendToApp)
 		{
 			key.a = sendToApp;
 			_Browser_window.addEventListener('popstate', key);
@@ -4082,9 +4082,9 @@ function _Browser_application(impl)
 					var next = $elm$url$Url$fromString(href).a;
 					sendToApp(onUrlRequest(
 						(next
+							&& curr.ax === next.ax
 							&& curr.aq === next.aq
-							&& curr.aj === next.aj
-							&& curr.an.a === next.an.a
+							&& curr.au.a === next.au.a
 						)
 							? $elm$browser$Browser$Internal(next)
 							: $elm$browser$Browser$External(href)
@@ -4092,13 +4092,13 @@ function _Browser_application(impl)
 				}
 			});
 		},
-		aK: function(flags)
+		aS: function(flags)
 		{
-			return A3(impl.aK, flags, _Browser_getUrl(), key);
+			return A3(impl.aS, flags, _Browser_getUrl(), key);
 		},
-		aV: impl.aV,
-		aT: impl.aT,
-		aR: impl.aR
+		a1: impl.a1,
+		a$: impl.a$,
+		aZ: impl.aZ
 	});
 }
 
@@ -4164,17 +4164,17 @@ var _Browser_decodeEvent = F2(function(decoder, event)
 function _Browser_visibilityInfo()
 {
 	return (typeof _VirtualDom_doc.hidden !== 'undefined')
-		? { aI: 'hidden', aE: 'visibilitychange' }
+		? { aQ: 'hidden', aM: 'visibilitychange' }
 		:
 	(typeof _VirtualDom_doc.mozHidden !== 'undefined')
-		? { aI: 'mozHidden', aE: 'mozvisibilitychange' }
+		? { aQ: 'mozHidden', aM: 'mozvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.msHidden !== 'undefined')
-		? { aI: 'msHidden', aE: 'msvisibilitychange' }
+		? { aQ: 'msHidden', aM: 'msvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.webkitHidden !== 'undefined')
-		? { aI: 'webkitHidden', aE: 'webkitvisibilitychange' }
-		: { aI: 'hidden', aE: 'visibilitychange' };
+		? { aQ: 'webkitHidden', aM: 'webkitvisibilitychange' }
+		: { aQ: 'hidden', aM: 'visibilitychange' };
 }
 
 
@@ -4255,12 +4255,12 @@ var _Browser_call = F2(function(functionName, id)
 function _Browser_getViewport()
 {
 	return {
-		au: _Browser_getScene(),
-		ax: {
-			az: _Browser_window.pageXOffset,
-			aA: _Browser_window.pageYOffset,
-			ay: _Browser_doc.documentElement.clientWidth,
-			ai: _Browser_doc.documentElement.clientHeight
+		aB: _Browser_getScene(),
+		aE: {
+			aG: _Browser_window.pageXOffset,
+			aH: _Browser_window.pageYOffset,
+			aF: _Browser_doc.documentElement.clientWidth,
+			ap: _Browser_doc.documentElement.clientHeight
 		}
 	};
 }
@@ -4270,8 +4270,8 @@ function _Browser_getScene()
 	var body = _Browser_doc.body;
 	var elem = _Browser_doc.documentElement;
 	return {
-		ay: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		ai: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
+		aF: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
+		ap: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
 	};
 }
 
@@ -4294,15 +4294,15 @@ function _Browser_getViewportOf(id)
 	return _Browser_withNode(id, function(node)
 	{
 		return {
-			au: {
-				ay: node.scrollWidth,
-				ai: node.scrollHeight
+			aB: {
+				aF: node.scrollWidth,
+				ap: node.scrollHeight
 			},
-			ax: {
-				az: node.scrollLeft,
-				aA: node.scrollTop,
-				ay: node.clientWidth,
-				ai: node.clientHeight
+			aE: {
+				aG: node.scrollLeft,
+				aH: node.scrollTop,
+				aF: node.clientWidth,
+				ap: node.clientHeight
 			}
 		};
 	});
@@ -4332,18 +4332,18 @@ function _Browser_getElement(id)
 		var x = _Browser_window.pageXOffset;
 		var y = _Browser_window.pageYOffset;
 		return {
-			au: _Browser_getScene(),
-			ax: {
-				az: x,
-				aA: y,
-				ay: _Browser_doc.documentElement.clientWidth,
-				ai: _Browser_doc.documentElement.clientHeight
+			aB: _Browser_getScene(),
+			aE: {
+				aG: x,
+				aH: y,
+				aF: _Browser_doc.documentElement.clientWidth,
+				ap: _Browser_doc.documentElement.clientHeight
 			},
-			aG: {
-				az: x + rect.left,
-				aA: y + rect.top,
-				ay: rect.width,
-				ai: rect.height
+			aO: {
+				aG: x + rect.left,
+				aH: y + rect.top,
+				aF: rect.width,
+				ap: rect.height
 			}
 		};
 	});
@@ -4882,7 +4882,7 @@ var $elm$url$Url$Http = 0;
 var $elm$url$Url$Https = 1;
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
-		return {ah: fragment, aj: host, f: path, an: port_, aq: protocol, ar: query};
+		return {ao: fragment, aq: host, f: path, au: port_, ax: protocol, ay: query};
 	});
 var $elm$core$String$contains = _String_contains;
 var $elm$core$String$length = _String_length;
@@ -5166,15 +5166,21 @@ var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		{
+			H: $elm$core$Maybe$Nothing,
+			I: $elm$core$Maybe$Nothing,
+			Q: 'extension.zip',
+			J: $elm$core$Maybe$Nothing,
 			r: $elm$core$Maybe$Nothing,
 			m: _List_Nil,
 			g: {v: false, w: '', y: false, A: false, B: false, C: false},
 			z: false,
 			k: true,
+			L: $elm$core$Maybe$Nothing,
 			F: $elm$core$Maybe$Nothing,
+			Y: $elm$core$Maybe$Nothing,
 			S: $elm$core$Maybe$Nothing,
-			M: $elm$core$Maybe$Nothing,
-			N: false
+			T: false,
+			O: $elm$core$Maybe$Nothing
 		},
 		$elm$core$Platform$Cmd$none);
 };
@@ -5212,16 +5218,54 @@ var $author$project$Main$subscriptions = function (_v0) {
 				$author$project$Main$settingsLoaded($author$project$Main$HandleSettings)
 			]));
 };
-var $author$project$Main$ZipEntry = F3(
-	function (path, size, isDirectory) {
-		return {V: isDirectory, f: path, T: size};
-	});
 var $elm$json$Json$Decode$bool = _Json_decodeBool;
 var $elm$json$Json$Decode$decodeValue = _Json_run;
 var $elm$json$Json$Decode$field = _Json_decodeField;
-var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $author$project$Main$ZipMetadata = F7(
+	function (entries, zipname, downloadUrl, crxDownloadUrl, crxDownloadName, webstoreUrl, openViewerUrl) {
+		return {H: crxDownloadName, I: crxDownloadUrl, J: downloadUrl, am: entries, L: openViewerUrl, O: webstoreUrl, aJ: zipname};
+	});
 var $elm$json$Json$Decode$list = _Json_decodeList;
+var $elm$json$Json$Decode$map7 = _Json_map7;
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $elm$json$Json$Decode$maybe = function (decoder) {
+	return $elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, decoder),
+				$elm$json$Json$Decode$succeed($elm$core$Maybe$Nothing)
+			]));
+};
+var $author$project$Main$ZipEntry = F3(
+	function (path, size, isDirectory) {
+		return {aa: isDirectory, f: path, Z: size};
+	});
+var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $elm$json$Json$Decode$map3 = _Json_map3;
+var $author$project$Main$zipEntryDecoder = A4(
+	$elm$json$Json$Decode$map3,
+	$author$project$Main$ZipEntry,
+	A2($elm$json$Json$Decode$field, 'path', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'size', $elm$json$Json$Decode$int),
+	A2($elm$json$Json$Decode$field, 'isDirectory', $elm$json$Json$Decode$bool));
+var $author$project$Main$metadataDecoder = A8(
+	$elm$json$Json$Decode$map7,
+	$author$project$Main$ZipMetadata,
+	A2(
+		$elm$json$Json$Decode$field,
+		'entries',
+		$elm$json$Json$Decode$list($author$project$Main$zipEntryDecoder)),
+	A2($elm$json$Json$Decode$field, 'zipname', $elm$json$Json$Decode$string),
+	$elm$json$Json$Decode$maybe(
+		A2($elm$json$Json$Decode$field, 'downloadUrl', $elm$json$Json$Decode$string)),
+	$elm$json$Json$Decode$maybe(
+		A2($elm$json$Json$Decode$field, 'crxDownloadUrl', $elm$json$Json$Decode$string)),
+	$elm$json$Json$Decode$maybe(
+		A2($elm$json$Json$Decode$field, 'crxDownloadName', $elm$json$Json$Decode$string)),
+	$elm$json$Json$Decode$maybe(
+		A2($elm$json$Json$Decode$field, 'webstoreUrl', $elm$json$Json$Decode$string)),
+	$elm$json$Json$Decode$maybe(
+		A2($elm$json$Json$Decode$field, 'openViewerUrl', $elm$json$Json$Decode$string)));
 var $elm$core$Basics$not = _Basics_not;
 var $elm$core$Tuple$pair = F2(
 	function (a, b) {
@@ -5250,7 +5294,7 @@ var $author$project$Main$requestFileContent = _Platform_outgoingPort(
 				[
 					_Utils_Tuple2(
 					'beautify',
-					$elm$json$Json$Encode$bool($.U)),
+					$elm$json$Json$Encode$bool($._)),
 					_Utils_Tuple2(
 					'path',
 					$elm$json$Json$Encode$string($.f))
@@ -5264,7 +5308,7 @@ var $author$project$Main$requestHighlight = _Platform_outgoingPort(
 				[
 					_Utils_Tuple2(
 					'content',
-					$elm$json$Json$Encode$string($.ad)),
+					$elm$json$Json$Encode$string($.aj)),
 					_Utils_Tuple2(
 					'path',
 					$elm$json$Json$Encode$string($.f))
@@ -5325,11 +5369,11 @@ var $author$project$Main$update = F2(
 						{
 							k: true,
 							F: $elm$core$Maybe$Just(path),
-							S: $elm$core$Maybe$Nothing,
-							M: $elm$core$Maybe$Nothing
+							Y: $elm$core$Maybe$Nothing,
+							S: $elm$core$Maybe$Nothing
 						}),
 					$author$project$Main$requestFileContent(
-						{U: model.z, f: path}));
+						{_: model.z, f: path}));
 			case 3:
 				var newBeautify = !model.z;
 				var _v2 = model.F;
@@ -5340,7 +5384,7 @@ var $author$project$Main$update = F2(
 							model,
 							{z: newBeautify, k: true}),
 						$author$project$Main$requestFileContent(
-							{U: newBeautify, f: path}));
+							{_: newBeautify, f: path}));
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
@@ -5352,7 +5396,7 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{N: !model.N}),
+						{T: !model.T}),
 					$elm$core$Platform$Cmd$none);
 			case 5:
 				var url = msg.a;
@@ -5363,27 +5407,22 @@ var $author$project$Main$update = F2(
 					$author$project$Main$requestZipContents(url));
 			case 6:
 				var val = msg.a;
-				var decoder = $elm$json$Json$Decode$list(
-					A4(
-						$elm$json$Json$Decode$map3,
-						$author$project$Main$ZipEntry,
-						A2($elm$json$Json$Decode$field, 'path', $elm$json$Json$Decode$string),
-						A2($elm$json$Json$Decode$field, 'size', $elm$json$Json$Decode$int),
-						A2($elm$json$Json$Decode$field, 'isDirectory', $elm$json$Json$Decode$bool)));
-				var _v3 = A2($elm$json$Json$Decode$decodeValue, decoder, val);
+				var _v3 = A2($elm$json$Json$Decode$decodeValue, $author$project$Main$metadataDecoder, val);
 				if (!_v3.$) {
-					var parsedFiles = _v3.a;
+					var meta = _v3.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{m: parsedFiles, k: false}),
+							{H: meta.H, I: meta.I, Q: meta.aJ, J: meta.J, m: meta.am, k: false, L: meta.L, O: meta.O}),
 						$elm$core$Platform$Cmd$none);
 				} else {
+					var err = _v3.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								r: $elm$core$Maybe$Just('Failed to parse files list'),
+								r: $elm$core$Maybe$Just(
+									'Failed to parse zip metadata: ' + $elm$json$Json$Decode$errorToString(err)),
 								k: false
 							}),
 						$elm$core$Platform$Cmd$none);
@@ -5416,10 +5455,10 @@ var $author$project$Main$update = F2(
 							_Utils_update(
 								model,
 								{
-									S: $elm$core$Maybe$Just(content)
+									Y: $elm$core$Maybe$Just(content)
 								}),
 							$author$project$Main$requestHighlight(
-								{ad: content, f: path}));
+								{aj: content, f: path}));
 					} else {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					}
@@ -5444,7 +5483,7 @@ var $author$project$Main$update = F2(
 							model,
 							{
 								k: false,
-								M: $elm$core$Maybe$Just(html)
+								S: $elm$core$Maybe$Just(html)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -5477,6 +5516,7 @@ var $author$project$Main$ToggleBeautify = {$: 3};
 var $author$project$Main$ToggleFilter = function (a) {
 	return {$: 0, a: a};
 };
+var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -5608,13 +5648,16 @@ var $author$project$Main$countFilterType = F2(
 			A2(
 				$elm$core$List$filter,
 				function (e) {
-					return (!e.V) && _Utils_eq(
+					return (!e.aa) && _Utils_eq(
 						$author$project$Main$getGenericType(e.f),
 						targetType);
 				},
 				entries));
 	});
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$Attributes$download = function (fileName) {
+	return A2($elm$html$Html$Attributes$stringProperty, 'download', fileName);
+};
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
@@ -5653,7 +5696,7 @@ var $author$project$Main$filterEntries = F2(
 		return A2(
 			$elm$core$List$filter,
 			function (e) {
-				return (!e.V) && (matchesSearch(e) && matchesCategories(e));
+				return (!e.aa) && (matchesSearch(e) && matchesCategories(e));
 			},
 			entries);
 	});
@@ -5680,6 +5723,12 @@ var $author$project$Main$formatByteSizeSuffix = function (fileSize) {
 		$elm$core$Basics$round(fileSize / 1000)) + ' KB') : ((fileSize < 1000000000) ? ($elm$core$String$fromInt(
 		$elm$core$Basics$round(fileSize / 1000000)) + ' MB') : ($elm$core$String$fromInt(
 		$elm$core$Basics$round(fileSize / 1000000000)) + ' GB')));
+};
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
 };
 var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
@@ -5803,7 +5852,7 @@ var $author$project$Main$view = function (model) {
 		A2(
 			$elm$core$List$map,
 			function ($) {
-				return $.T;
+				return $.Z;
 			},
 			filtered));
 	var fileItem = function (entry) {
@@ -5870,12 +5919,12 @@ var $author$project$Main$view = function (model) {
 						[
 							$elm$html$Html$Attributes$class('file-size'),
 							$elm$html$Html$Attributes$title(
-							$author$project$Main$formatByteSize(entry.T) + ' bytes')
+							$author$project$Main$formatByteSize(entry.Z) + ' bytes')
 						]),
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							$author$project$Main$formatByteSizeSuffix(entry.T))
+							$author$project$Main$formatByteSizeSuffix(entry.Z))
 						]))
 				]));
 	};
@@ -6137,7 +6186,97 @@ var $author$project$Main$view = function (model) {
 													A2($author$project$Main$countFilterType, 'misc', model.m)))
 											]))
 									]))
-							]))
+							])),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$id('file-filter-feedback')
+							]),
+						_List_Nil),
+						function () {
+						var _v5 = model.O;
+						if (!_v5.$) {
+							var url = _v5.a;
+							return A2(
+								$elm$html$Html$a,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$id('webstore-link'),
+										$elm$html$Html$Attributes$href(url),
+										$elm$html$Html$Attributes$title(url)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Listing')
+									]));
+						} else {
+							return $elm$html$Html$text('');
+						}
+					}(),
+						function () {
+						var _v6 = model.J;
+						if (!_v6.$) {
+							var url = _v6.a;
+							return A2(
+								$elm$html$Html$a,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$id('download-link'),
+										$elm$html$Html$Attributes$href(url),
+										$elm$html$Html$Attributes$download(model.Q),
+										$elm$html$Html$Attributes$title('Download zip file as ' + model.Q)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Download')
+									]));
+						} else {
+							return $elm$html$Html$text('');
+						}
+					}(),
+						function () {
+						var _v7 = _Utils_Tuple2(model.I, model.H);
+						if ((!_v7.a.$) && (!_v7.b.$)) {
+							var url = _v7.a.a;
+							var name = _v7.b.a;
+							return A2(
+								$elm$html$Html$a,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$id('download-link-crx'),
+										$elm$html$Html$Attributes$href(url),
+										$elm$html$Html$Attributes$download(name),
+										$elm$html$Html$Attributes$title('Download original CRX file as ' + name)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('CRX')
+									]));
+						} else {
+							return $elm$html$Html$text('');
+						}
+					}(),
+						function () {
+						var _v8 = model.L;
+						if (!_v8.$) {
+							var url = _v8.a;
+							return A2(
+								$elm$html$Html$a,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$id('open-crxviewer'),
+										$elm$html$Html$Attributes$href(url),
+										$elm$html$Html$Attributes$title('View the source of another extension or zip file')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Open')
+									]));
+						} else {
+							return $elm$html$Html$text('');
+						}
+					}()
 					])),
 				A2(
 				$elm$html$Html$div,
@@ -6204,9 +6343,9 @@ var $author$project$Main$view = function (model) {
 						_List_fromArray(
 							[
 								function () {
-								var _v5 = model.F;
-								if (!_v5.$) {
-									var path = _v5.a;
+								var _v9 = model.F;
+								if (!_v9.$) {
+									var path = _v9.a;
 									return A2(
 										$elm$html$Html$div,
 										_List_fromArray(
@@ -6235,7 +6374,7 @@ var $author$project$Main$view = function (model) {
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														model.N ? 'Hide analysis' : 'Show analysis')
+														model.T ? 'Hide analysis' : 'Show analysis')
 													]))
 											]));
 								} else {
@@ -6264,9 +6403,9 @@ var $author$project$Main$view = function (model) {
 												$elm$html$Html$text('Loading...')
 											]));
 								} else {
-									var _v6 = model.M;
-									if (!_v6.$) {
-										var html = _v6.a;
+									var _v10 = model.S;
+									if (!_v10.$) {
+										var html = _v10.a;
 										return A3(
 											$elm$html$Html$node,
 											'pre',
@@ -6299,5 +6438,5 @@ var $author$project$Main$view = function (model) {
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
-	{aK: $author$project$Main$init, aR: $author$project$Main$subscriptions, aT: $author$project$Main$update, aV: $author$project$Main$view});
+	{aS: $author$project$Main$init, aZ: $author$project$Main$subscriptions, a$: $author$project$Main$update, a1: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$value)(0)}});}(this));

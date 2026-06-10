@@ -1,6 +1,26 @@
 (function() {
     'use strict';
 
+    // Set zip workerScriptsPath so that zip.js knows where to find z-worker.js
+    if (typeof zip !== 'undefined') {
+        zip.workerScriptsPath = 'lib/zip.js/';
+    }
+
+    // Keep track of active object URLs for download links to prevent memory leaks
+    let currentZipObjectUrl = null;
+    let currentCrxObjectUrl = null;
+
+    function cleanupObjectUrls() {
+        if (currentZipObjectUrl) {
+            URL.revokeObjectURL(currentZipObjectUrl);
+            currentZipObjectUrl = null;
+        }
+        if (currentCrxObjectUrl) {
+            URL.revokeObjectURL(currentCrxObjectUrl);
+            currentCrxObjectUrl = null;
+        }
+    }
+
     // Helper to escape HTML characters (prevents HTML/XSS injection on Prism fallback)
     function escapeHtml(str) {
         return str
@@ -141,9 +161,49 @@
             activeZipReader = null;
         }
 
+        const crxUrlParam = getParam('crx');
+        const zipNameParam = getParam('zipname');
+
+        // Compute Webstore URL
+        let webstoreUrl = null;
+        if (crxUrlParam && typeof get_webstore_url !== 'undefined') {
+            webstoreUrl = get_webstore_url(crxUrlParam);
+        }
+
+        // Compute ZIP name
+        let computedZipName = 'extension.zip';
+        if (typeof get_zip_name !== 'undefined') {
+            computedZipName = get_zip_name(crxUrlParam || (typeof urlOrBlob === 'string' ? urlOrBlob : ''), zipNameParam);
+        } else if (zipNameParam) {
+            computedZipName = zipNameParam;
+        }
+
+        // Compute CRX name
+        const computedCrxName = computedZipName.replace(/\.zip$/i, '.crx');
+
+        // Compute Open Viewer URL
+        let openViewerUrl = 'crxviewer.html';
+        if (crxUrlParam && typeof encodeQueryString !== 'undefined') {
+            openViewerUrl += '?' + encodeQueryString({
+                noview: 'on',
+                crx: crxUrlParam
+            });
+        }
+
         // Use openCRXasZip to safely handle both URLs and Blobs, as well as stripping CRX headers
         if (typeof openCRXasZip !== 'undefined') {
-            openCRXasZip(urlOrBlob, function(zipBlob) {
+            openCRXasZip(urlOrBlob, function(zipBlob, publicKey, raw_crx_data) {
+                cleanupObjectUrls();
+                currentZipObjectUrl = URL.createObjectURL(zipBlob);
+                const zipDownloadUrl = currentZipObjectUrl;
+
+                let crxDownloadUrl = null;
+                if (raw_crx_data) {
+                    const crxBlob = new Blob([raw_crx_data], { type: 'application/octet-stream' });
+                    currentCrxObjectUrl = URL.createObjectURL(crxBlob);
+                    crxDownloadUrl = currentCrxObjectUrl;
+                }
+
                 zip.createReader(new zip.BlobReader(zipBlob), function(zipReader) {
                     activeZipReader = zipReader;
                     zipReader.getEntries(function(entries) {
@@ -153,7 +213,15 @@
                             size: e.uncompressedSize,
                             isDirectory: e.directory
                         }));
-                        app.ports.zipLoaded.send(mapped);
+                        app.ports.zipLoaded.send({
+                            entries: mapped,
+                            zipname: computedZipName,
+                            downloadUrl: zipDownloadUrl,
+                            crxDownloadUrl: crxDownloadUrl,
+                            crxDownloadName: computedCrxName,
+                            webstoreUrl: webstoreUrl,
+                            openViewerUrl: openViewerUrl
+                        });
                     });
                 }, function(error) {
                     app.ports.zipLoadError.send("Reader creation failed: " + String(error));
@@ -163,20 +231,45 @@
             });
         } else {
             // Fallback if openCRXasZip is not loaded
-            zip.createReader(new zip.BlobReader(urlOrBlob), function(zipReader) {
-                activeZipReader = zipReader;
-                zipReader.getEntries(function(entries) {
-                    loadedEntries = entries;
-                    const mapped = entries.map(e => ({
-                        path: e.filename,
-                        size: e.uncompressedSize,
-                        isDirectory: e.directory
-                    }));
-                    app.ports.zipLoaded.send(mapped);
+            const processBlob = function(blob) {
+                cleanupObjectUrls();
+                currentZipObjectUrl = URL.createObjectURL(blob);
+                const zipDownloadUrl = currentZipObjectUrl;
+
+                zip.createReader(new zip.BlobReader(blob), function(zipReader) {
+                    activeZipReader = zipReader;
+                    zipReader.getEntries(function(entries) {
+                        loadedEntries = entries;
+                        const mapped = entries.map(e => ({
+                            path: e.filename,
+                            size: e.uncompressedSize,
+                            isDirectory: e.directory
+                        }));
+                        app.ports.zipLoaded.send({
+                            entries: mapped,
+                            zipname: computedZipName,
+                            downloadUrl: zipDownloadUrl,
+                            crxDownloadUrl: null,
+                            crxDownloadName: null,
+                            webstoreUrl: webstoreUrl,
+                            openViewerUrl: openViewerUrl
+                        });
+                    });
+                }, function(error) {
+                    app.ports.zipLoadError.send(String(error));
                 });
-            }, function(error) {
-                app.ports.zipLoadError.send(String(error));
-            });
+            };
+
+            if (urlOrBlob instanceof Blob) {
+                processBlob(urlOrBlob);
+            } else if (typeof urlOrBlob === 'string') {
+                fetch(urlOrBlob)
+                    .then(r => r.blob())
+                    .then(processBlob)
+                    .catch(e => {
+                        app.ports.zipLoadError.send("Failed to fetch zip: " + String(e));
+                    });
+            }
         }
     }
 
@@ -201,6 +294,7 @@
 
     // Cleanup active resources on page unload
     window.addEventListener('unload', () => {
+        cleanupObjectUrls();
         if (activeZipReader) {
             try {
                 activeZipReader.close();

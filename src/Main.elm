@@ -66,6 +66,12 @@ type alias Model =
     , filterOptions : FilterOptions
     , isLoading : Bool
     , errorMessage : Maybe String
+    , webstoreUrl : Maybe String
+    , downloadUrl : Maybe String
+    , downloadName : String
+    , crxDownloadUrl : Maybe String
+    , crxDownloadName : Maybe String
+    , openViewerUrl : Maybe String
     }
 
 
@@ -109,6 +115,12 @@ init _ =
             }
       , isLoading = True
       , errorMessage = Nothing
+      , webstoreUrl = Nothing
+      , downloadUrl = Nothing
+      , downloadName = "extension.zip"
+      , crxDownloadUrl = Nothing
+      , crxDownloadName = Nothing
+      , openViewerUrl = Nothing
       }
     , Cmd.none
     )
@@ -177,16 +189,23 @@ update msg model =
             ( { model | isLoading = True, errorMessage = Nothing }, requestZipContents url )
 
         HandleZipLoaded val ->
-            let
-                decoder =
-                    D.list (D.map3 ZipEntry (D.field "path" D.string) (D.field "size" D.int) (D.field "isDirectory" D.bool))
-            in
-            case D.decodeValue decoder val of
-                Ok parsedFiles ->
-                    ( { model | files = parsedFiles, isLoading = False }, Cmd.none )
+            case D.decodeValue metadataDecoder val of
+                Ok meta ->
+                    ( { model
+                        | files = meta.entries
+                        , webstoreUrl = meta.webstoreUrl
+                        , downloadUrl = meta.downloadUrl
+                        , downloadName = meta.zipname
+                        , crxDownloadUrl = meta.crxDownloadUrl
+                        , crxDownloadName = meta.crxDownloadName
+                        , openViewerUrl = meta.openViewerUrl
+                        , isLoading = False
+                      }
+                    , Cmd.none
+                    )
 
-                Err _ ->
-                    ( { model | errorMessage = Just "Failed to parse files list", isLoading = False }, Cmd.none )
+                Err err ->
+                    ( { model | errorMessage = Just ("Failed to parse zip metadata: " ++ D.errorToString err), isLoading = False }, Cmd.none )
 
         HandleZipError err ->
             ( { model | errorMessage = Just err, isLoading = False }, Cmd.none )
@@ -452,6 +471,31 @@ view model =
                     , span [ class "gcount" ] [ text (String.fromInt (countFilterType "misc" model.files)) ]
                     ]
                 ]
+            , span [ id "file-filter-feedback" ] []
+            , case model.webstoreUrl of
+                Just url ->
+                    a [ id "webstore-link", href url, title url ] [ text "Listing" ]
+
+                Nothing ->
+                    text ""
+            , case model.downloadUrl of
+                Just url ->
+                    a [ id "download-link", href url, download model.downloadName, title ("Download zip file as " ++ model.downloadName) ] [ text "Download" ]
+
+                Nothing ->
+                    text ""
+            , case ( model.crxDownloadUrl, model.crxDownloadName ) of
+                ( Just url, Just name ) ->
+                    a [ id "download-link-crx", href url, download name, title ("Download original CRX file as " ++ name) ] [ text "CRX" ]
+
+                _ ->
+                    text ""
+            , case model.openViewerUrl of
+                Just url ->
+                    a [ id "open-crxviewer", href url, title "View the source of another extension or zip file" ] [ text "Open" ]
+
+                Nothing ->
+                    text ""
             ]
         , div [ id "left-panel" ]
             [ div [ class "content" ]
@@ -505,6 +549,37 @@ view model =
                 ]
             ]
         ]
+
+
+type alias ZipMetadata =
+    { entries : List ZipEntry
+    , zipname : String
+    , downloadUrl : Maybe String
+    , crxDownloadUrl : Maybe String
+    , crxDownloadName : Maybe String
+    , webstoreUrl : Maybe String
+    , openViewerUrl : Maybe String
+    }
+
+
+metadataDecoder : D.Decoder ZipMetadata
+metadataDecoder =
+    D.map7 ZipMetadata
+        (D.field "entries" (D.list zipEntryDecoder))
+        (D.field "zipname" D.string)
+        (D.maybe (D.field "downloadUrl" D.string))
+        (D.maybe (D.field "crxDownloadUrl" D.string))
+        (D.maybe (D.field "crxDownloadName" D.string))
+        (D.maybe (D.field "webstoreUrl" D.string))
+        (D.maybe (D.field "openViewerUrl" D.string))
+
+
+zipEntryDecoder : D.Decoder ZipEntry
+zipEntryDecoder =
+    D.map3 ZipEntry
+        (D.field "path" D.string)
+        (D.field "size" D.int)
+        (D.field "isDirectory" D.bool)
 
 
 main : Program D.Value Model Msg
