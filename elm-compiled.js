@@ -784,11 +784,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.af.R === region.al.R)
+	if (region.aa.M === region.ag.M)
 	{
-		return 'on line ' + region.af.R;
+		return 'on line ' + region.aa.M;
 	}
-	return 'on lines ' + region.af.R + ' through ' + region.al.R;
+	return 'on lines ' + region.aa.M + ' through ' + region.ag.M;
 }
 
 
@@ -1861,9 +1861,9 @@ var _Platform_worker = F4(function(impl, flagDecoder, debugMetadata, args)
 	return _Platform_initialize(
 		flagDecoder,
 		args,
+		impl.aM,
+		impl.aU,
 		impl.aS,
-		impl.a$,
-		impl.aZ,
 		function() { return function() {} }
 	);
 });
@@ -2728,8 +2728,8 @@ var _VirtualDom_mapEventRecord = F2(function(func, record)
 {
 	return {
 		s: func(record.s),
-		ag: record.ag,
-		ad: record.ad
+		ab: record.ab,
+		Z: record.Z
 	}
 });
 
@@ -2998,10 +2998,10 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
 
 		var value = result.a;
 		var message = !tag ? value : tag < 3 ? value.a : value.s;
-		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.ag;
+		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.ab;
 		var currentEventNode = (
 			stopPropagation && event.stopPropagation(),
-			(tag == 2 ? value.b : tag == 3 && value.ad) && event.preventDefault(),
+			(tag == 2 ? value.b : tag == 3 && value.Z) && event.preventDefault(),
 			eventNode
 		);
 		var tagger;
@@ -3951,11 +3951,11 @@ var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debug
 	return _Platform_initialize(
 		flagDecoder,
 		args,
+		impl.aM,
+		impl.aU,
 		impl.aS,
-		impl.a$,
-		impl.aZ,
 		function(sendToApp, initialModel) {
-			var view = impl.a1;
+			var view = impl.aV;
 			/**/
 			var domNode = args['node'];
 			//*/
@@ -3987,12 +3987,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 	return _Platform_initialize(
 		flagDecoder,
 		args,
+		impl.aM,
+		impl.aU,
 		impl.aS,
-		impl.a$,
-		impl.aZ,
 		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.ae && impl.ae(sendToApp)
-			var view = impl.a1;
+			var divertHrefToApp = impl._ && impl._(sendToApp)
+			var view = impl.aV;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
 			var currNode = _VirtualDom_virtualize(bodyNode);
@@ -4000,12 +4000,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 			{
 				_VirtualDom_divertHrefToApp = divertHrefToApp;
 				var doc = view(model);
-				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.aL);
+				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.aF);
 				var patches = _VirtualDom_diff(currNode, nextNode);
 				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
 				currNode = nextNode;
 				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.a_) && (_VirtualDom_doc.title = title = doc.a_);
+				(title !== doc.aT) && (_VirtualDom_doc.title = title = doc.aT);
 			});
 		}
 	);
@@ -4061,12 +4061,12 @@ function _Browser_makeAnimator(model, draw)
 
 function _Browser_application(impl)
 {
-	var onUrlChange = impl.aV;
-	var onUrlRequest = impl.aW;
+	var onUrlChange = impl.aO;
+	var onUrlRequest = impl.aP;
 	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
 
 	return _Browser_document({
-		ae: function(sendToApp)
+		_: function(sendToApp)
 		{
 			key.a = sendToApp;
 			_Browser_window.addEventListener('popstate', key);
@@ -4082,9 +4082,9 @@ function _Browser_application(impl)
 					var next = $elm$url$Url$fromString(href).a;
 					sendToApp(onUrlRequest(
 						(next
-							&& curr.ax === next.ax
-							&& curr.aq === next.aq
-							&& curr.au.a === next.au.a
+							&& curr.as === next.as
+							&& curr.ak === next.ak
+							&& curr.ap.a === next.ap.a
 						)
 							? $elm$browser$Browser$Internal(next)
 							: $elm$browser$Browser$External(href)
@@ -4092,13 +4092,13 @@ function _Browser_application(impl)
 				}
 			});
 		},
-		aS: function(flags)
+		aM: function(flags)
 		{
-			return A3(impl.aS, flags, _Browser_getUrl(), key);
+			return A3(impl.aM, flags, _Browser_getUrl(), key);
 		},
-		a1: impl.a1,
-		a$: impl.a$,
-		aZ: impl.aZ
+		aV: impl.aV,
+		aU: impl.aU,
+		aS: impl.aS
 	});
 }
 
@@ -4164,17 +4164,17 @@ var _Browser_decodeEvent = F2(function(decoder, event)
 function _Browser_visibilityInfo()
 {
 	return (typeof _VirtualDom_doc.hidden !== 'undefined')
-		? { aQ: 'hidden', aM: 'visibilitychange' }
+		? { aK: 'hidden', aG: 'visibilitychange' }
 		:
 	(typeof _VirtualDom_doc.mozHidden !== 'undefined')
-		? { aQ: 'mozHidden', aM: 'mozvisibilitychange' }
+		? { aK: 'mozHidden', aG: 'mozvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.msHidden !== 'undefined')
-		? { aQ: 'msHidden', aM: 'msvisibilitychange' }
+		? { aK: 'msHidden', aG: 'msvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.webkitHidden !== 'undefined')
-		? { aQ: 'webkitHidden', aM: 'webkitvisibilitychange' }
-		: { aQ: 'hidden', aM: 'visibilitychange' };
+		? { aK: 'webkitHidden', aG: 'webkitvisibilitychange' }
+		: { aK: 'hidden', aG: 'visibilitychange' };
 }
 
 
@@ -4255,12 +4255,12 @@ var _Browser_call = F2(function(functionName, id)
 function _Browser_getViewport()
 {
 	return {
-		aB: _Browser_getScene(),
-		aE: {
-			aG: _Browser_window.pageXOffset,
-			aH: _Browser_window.pageYOffset,
-			aF: _Browser_doc.documentElement.clientWidth,
-			ap: _Browser_doc.documentElement.clientHeight
+		aw: _Browser_getScene(),
+		az: {
+			aB: _Browser_window.pageXOffset,
+			aC: _Browser_window.pageYOffset,
+			aA: _Browser_doc.documentElement.clientWidth,
+			aj: _Browser_doc.documentElement.clientHeight
 		}
 	};
 }
@@ -4270,8 +4270,8 @@ function _Browser_getScene()
 	var body = _Browser_doc.body;
 	var elem = _Browser_doc.documentElement;
 	return {
-		aF: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		ap: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
+		aA: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
+		aj: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
 	};
 }
 
@@ -4294,15 +4294,15 @@ function _Browser_getViewportOf(id)
 	return _Browser_withNode(id, function(node)
 	{
 		return {
-			aB: {
-				aF: node.scrollWidth,
-				ap: node.scrollHeight
+			aw: {
+				aA: node.scrollWidth,
+				aj: node.scrollHeight
 			},
-			aE: {
-				aG: node.scrollLeft,
-				aH: node.scrollTop,
-				aF: node.clientWidth,
-				ap: node.clientHeight
+			az: {
+				aB: node.scrollLeft,
+				aC: node.scrollTop,
+				aA: node.clientWidth,
+				aj: node.clientHeight
 			}
 		};
 	});
@@ -4332,18 +4332,18 @@ function _Browser_getElement(id)
 		var x = _Browser_window.pageXOffset;
 		var y = _Browser_window.pageYOffset;
 		return {
-			aB: _Browser_getScene(),
-			aE: {
-				aG: x,
-				aH: y,
-				aF: _Browser_doc.documentElement.clientWidth,
-				ap: _Browser_doc.documentElement.clientHeight
+			aw: _Browser_getScene(),
+			az: {
+				aB: x,
+				aC: y,
+				aA: _Browser_doc.documentElement.clientWidth,
+				aj: _Browser_doc.documentElement.clientHeight
 			},
-			aO: {
-				aG: x + rect.left,
-				aH: y + rect.top,
-				aF: rect.width,
-				ap: rect.height
+			aI: {
+				aB: x + rect.left,
+				aC: y + rect.top,
+				aA: rect.width,
+				aj: rect.height
 			}
 		};
 	});
@@ -4882,7 +4882,7 @@ var $elm$url$Url$Http = 0;
 var $elm$url$Url$Https = 1;
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
-		return {ao: fragment, aq: host, f: path, au: port_, ax: protocol, ay: query};
+		return {ai: fragment, ak: host, f: path, ap: port_, as: protocol, at: query};
 	});
 var $elm$core$String$contains = _String_contains;
 var $elm$core$String$length = _String_length;
@@ -5166,44 +5166,34 @@ var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		{
-			H: $elm$core$Maybe$Nothing,
-			I: $elm$core$Maybe$Nothing,
-			Q: 'extension.zip',
-			J: $elm$core$Maybe$Nothing,
-			r: $elm$core$Maybe$Nothing,
+			w: $elm$core$Maybe$Nothing,
 			m: _List_Nil,
-			g: {v: false, w: '', y: false, A: false, B: false, C: false},
-			z: false,
-			k: true,
-			L: $elm$core$Maybe$Nothing,
-			F: $elm$core$Maybe$Nothing,
-			Y: $elm$core$Maybe$Nothing,
-			S: $elm$core$Maybe$Nothing,
-			T: false,
-			O: $elm$core$Maybe$Nothing
+			g: {v: false, x: '', z: false, B: false, C: false, D: false},
+			A: false,
+			l: true,
+			G: $elm$core$Maybe$Nothing,
+			T: $elm$core$Maybe$Nothing,
+			N: $elm$core$Maybe$Nothing,
+			O: false
 		},
 		$elm$core$Platform$Cmd$none);
 };
 var $author$project$Main$HandleFileContent = function (a) {
-	return {$: 8, a: a};
-};
-var $author$project$Main$HandleHighlighted = function (a) {
-	return {$: 9, a: a};
-};
-var $author$project$Main$HandleSettings = function (a) {
-	return {$: 10, a: a};
-};
-var $author$project$Main$HandleZipError = function (a) {
 	return {$: 7, a: a};
 };
-var $author$project$Main$HandleZipLoaded = function (a) {
+var $author$project$Main$HandleHighlighted = function (a) {
+	return {$: 8, a: a};
+};
+var $author$project$Main$HandleZipError = function (a) {
 	return {$: 6, a: a};
+};
+var $author$project$Main$HandleZipLoaded = function (a) {
+	return {$: 5, a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$json$Json$Decode$value = _Json_decodeValue;
 var $author$project$Main$fileContentReceived = _Platform_incomingPort('fileContentReceived', $elm$json$Json$Decode$value);
 var $author$project$Main$highlightedReceived = _Platform_incomingPort('highlightedReceived', $elm$json$Json$Decode$value);
-var $author$project$Main$settingsLoaded = _Platform_incomingPort('settingsLoaded', $elm$json$Json$Decode$value);
 var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$Main$zipLoadError = _Platform_incomingPort('zipLoadError', $elm$json$Json$Decode$string);
 var $author$project$Main$zipLoaded = _Platform_incomingPort('zipLoaded', $elm$json$Json$Decode$value);
@@ -5214,58 +5204,19 @@ var $author$project$Main$subscriptions = function (_v0) {
 				$author$project$Main$zipLoaded($author$project$Main$HandleZipLoaded),
 				$author$project$Main$zipLoadError($author$project$Main$HandleZipError),
 				$author$project$Main$fileContentReceived($author$project$Main$HandleFileContent),
-				$author$project$Main$highlightedReceived($author$project$Main$HandleHighlighted),
-				$author$project$Main$settingsLoaded($author$project$Main$HandleSettings)
-			]));
-};
-var $elm$json$Json$Decode$bool = _Json_decodeBool;
-var $elm$json$Json$Decode$decodeValue = _Json_run;
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $author$project$Main$ZipMetadata = F7(
-	function (entries, zipname, downloadUrl, crxDownloadUrl, crxDownloadName, webstoreUrl, openViewerUrl) {
-		return {H: crxDownloadName, I: crxDownloadUrl, J: downloadUrl, am: entries, L: openViewerUrl, O: webstoreUrl, aJ: zipname};
-	});
-var $elm$json$Json$Decode$list = _Json_decodeList;
-var $elm$json$Json$Decode$map7 = _Json_map7;
-var $elm$json$Json$Decode$oneOf = _Json_oneOf;
-var $elm$json$Json$Decode$maybe = function (decoder) {
-	return $elm$json$Json$Decode$oneOf(
-		_List_fromArray(
-			[
-				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, decoder),
-				$elm$json$Json$Decode$succeed($elm$core$Maybe$Nothing)
+				$author$project$Main$highlightedReceived($author$project$Main$HandleHighlighted)
 			]));
 };
 var $author$project$Main$ZipEntry = F3(
 	function (path, size, isDirectory) {
-		return {aa: isDirectory, f: path, Z: size};
+		return {W: isDirectory, f: path, U: size};
 	});
+var $elm$json$Json$Decode$bool = _Json_decodeBool;
+var $elm$json$Json$Decode$decodeValue = _Json_run;
+var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $elm$json$Json$Decode$list = _Json_decodeList;
 var $elm$json$Json$Decode$map3 = _Json_map3;
-var $author$project$Main$zipEntryDecoder = A4(
-	$elm$json$Json$Decode$map3,
-	$author$project$Main$ZipEntry,
-	A2($elm$json$Json$Decode$field, 'path', $elm$json$Json$Decode$string),
-	A2($elm$json$Json$Decode$field, 'size', $elm$json$Json$Decode$int),
-	A2($elm$json$Json$Decode$field, 'isDirectory', $elm$json$Json$Decode$bool));
-var $author$project$Main$metadataDecoder = A8(
-	$elm$json$Json$Decode$map7,
-	$author$project$Main$ZipMetadata,
-	A2(
-		$elm$json$Json$Decode$field,
-		'entries',
-		$elm$json$Json$Decode$list($author$project$Main$zipEntryDecoder)),
-	A2($elm$json$Json$Decode$field, 'zipname', $elm$json$Json$Decode$string),
-	$elm$json$Json$Decode$maybe(
-		A2($elm$json$Json$Decode$field, 'downloadUrl', $elm$json$Json$Decode$string)),
-	$elm$json$Json$Decode$maybe(
-		A2($elm$json$Json$Decode$field, 'crxDownloadUrl', $elm$json$Json$Decode$string)),
-	$elm$json$Json$Decode$maybe(
-		A2($elm$json$Json$Decode$field, 'crxDownloadName', $elm$json$Json$Decode$string)),
-	$elm$json$Json$Decode$maybe(
-		A2($elm$json$Json$Decode$field, 'webstoreUrl', $elm$json$Json$Decode$string)),
-	$elm$json$Json$Decode$maybe(
-		A2($elm$json$Json$Decode$field, 'openViewerUrl', $elm$json$Json$Decode$string)));
 var $elm$core$Basics$not = _Basics_not;
 var $elm$core$Tuple$pair = F2(
 	function (a, b) {
@@ -5294,7 +5245,7 @@ var $author$project$Main$requestFileContent = _Platform_outgoingPort(
 				[
 					_Utils_Tuple2(
 					'beautify',
-					$elm$json$Json$Encode$bool($._)),
+					$elm$json$Json$Encode$bool($.V)),
 					_Utils_Tuple2(
 					'path',
 					$elm$json$Json$Encode$string($.f))
@@ -5308,13 +5259,12 @@ var $author$project$Main$requestHighlight = _Platform_outgoingPort(
 				[
 					_Utils_Tuple2(
 					'content',
-					$elm$json$Json$Encode$string($.aj)),
+					$elm$json$Json$Encode$string($.ae)),
 					_Utils_Tuple2(
 					'path',
 					$elm$json$Json$Encode$string($.f))
 				]));
 	});
-var $author$project$Main$requestZipContents = _Platform_outgoingPort('requestZipContents', $elm$json$Json$Encode$string);
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -5330,19 +5280,19 @@ var $author$project$Main$update = F2(
 						case 1:
 							return _Utils_update(
 								old,
-								{B: !old.B});
+								{C: !old.C});
 						case 2:
 							return _Utils_update(
 								old,
-								{y: !old.y});
+								{z: !old.z});
 						case 3:
 							return _Utils_update(
 								old,
-								{A: !old.A});
+								{B: !old.B});
 						default:
 							return _Utils_update(
 								old,
-								{C: !old.C});
+								{D: !old.D});
 					}
 				}();
 				return _Utils_Tuple2(
@@ -5355,7 +5305,7 @@ var $author$project$Main$update = F2(
 				var old = model.g;
 				var newFilters = _Utils_update(
 					old,
-					{w: text});
+					{x: text});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -5367,77 +5317,75 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							k: true,
-							F: $elm$core$Maybe$Just(path),
-							Y: $elm$core$Maybe$Nothing,
-							S: $elm$core$Maybe$Nothing
+							l: true,
+							G: $elm$core$Maybe$Just(path),
+							T: $elm$core$Maybe$Nothing,
+							N: $elm$core$Maybe$Nothing
 						}),
 					$author$project$Main$requestFileContent(
-						{_: model.z, f: path}));
+						{V: model.A, f: path}));
 			case 3:
-				var newBeautify = !model.z;
-				var _v2 = model.F;
+				var newBeautify = !model.A;
+				var _v2 = model.G;
 				if (!_v2.$) {
 					var path = _v2.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{z: newBeautify, k: true}),
+							{A: newBeautify, l: true}),
 						$author$project$Main$requestFileContent(
-							{_: newBeautify, f: path}));
+							{V: newBeautify, f: path}));
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{z: newBeautify}),
+							{A: newBeautify}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 4:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{T: !model.T}),
+						{O: !model.O}),
 					$elm$core$Platform$Cmd$none);
 			case 5:
-				var url = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{r: $elm$core$Maybe$Nothing, k: true}),
-					$author$project$Main$requestZipContents(url));
-			case 6:
 				var val = msg.a;
-				var _v3 = A2($elm$json$Json$Decode$decodeValue, $author$project$Main$metadataDecoder, val);
+				var decoder = $elm$json$Json$Decode$list(
+					A4(
+						$elm$json$Json$Decode$map3,
+						$author$project$Main$ZipEntry,
+						A2($elm$json$Json$Decode$field, 'path', $elm$json$Json$Decode$string),
+						A2($elm$json$Json$Decode$field, 'size', $elm$json$Json$Decode$int),
+						A2($elm$json$Json$Decode$field, 'isDirectory', $elm$json$Json$Decode$bool)));
+				var _v3 = A2($elm$json$Json$Decode$decodeValue, decoder, val);
 				if (!_v3.$) {
-					var meta = _v3.a;
+					var parsedFiles = _v3.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{H: meta.H, I: meta.I, Q: meta.aJ, J: meta.J, m: meta.am, k: false, L: meta.L, O: meta.O}),
+							{m: parsedFiles, l: false}),
 						$elm$core$Platform$Cmd$none);
 				} else {
-					var err = _v3.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								r: $elm$core$Maybe$Just(
-									'Failed to parse zip metadata: ' + $elm$json$Json$Decode$errorToString(err)),
-								k: false
+								w: $elm$core$Maybe$Just('Failed to parse files list'),
+								l: false
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
-			case 7:
+			case 6:
 				var err = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							r: $elm$core$Maybe$Just(err),
-							k: false
+							w: $elm$core$Maybe$Just(err),
+							l: false
 						}),
 					$elm$core$Platform$Cmd$none);
-			case 8:
+			case 7:
 				var val = msg.a;
 				var decoder = A3(
 					$elm$json$Json$Decode$map2,
@@ -5448,17 +5396,17 @@ var $author$project$Main$update = F2(
 				if (!_v4.$) {
 					var _v5 = _v4.a;
 					var content = _v5.a;
-					var _v6 = model.F;
+					var _v6 = model.G;
 					if (!_v6.$) {
 						var path = _v6.a;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
 								{
-									Y: $elm$core$Maybe$Just(content)
+									T: $elm$core$Maybe$Just(content)
 								}),
 							$author$project$Main$requestHighlight(
-								{aj: content, f: path}));
+								{ae: content, f: path}));
 					} else {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					}
@@ -5467,12 +5415,12 @@ var $author$project$Main$update = F2(
 						_Utils_update(
 							model,
 							{
-								r: $elm$core$Maybe$Just('Failed to read file contents'),
-								k: false
+								w: $elm$core$Maybe$Just('Failed to read file contents'),
+								l: false
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
-			case 9:
+			default:
 				var val = msg.a;
 				var decoder = A2($elm$json$Json$Decode$field, 'htmlContent', $elm$json$Json$Decode$string);
 				var _v7 = A2($elm$json$Json$Decode$decodeValue, decoder, val);
@@ -5482,8 +5430,8 @@ var $author$project$Main$update = F2(
 						_Utils_update(
 							model,
 							{
-								k: false,
-								S: $elm$core$Maybe$Just(html)
+								l: false,
+								N: $elm$core$Maybe$Just(html)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -5491,13 +5439,11 @@ var $author$project$Main$update = F2(
 						_Utils_update(
 							model,
 							{
-								r: $elm$core$Maybe$Just('Failed to render syntax highlighting'),
-								k: false
+								w: $elm$core$Maybe$Just('Failed to render syntax highlighting'),
+								l: false
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
-			default:
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		}
 	});
 var $author$project$Main$Code = 0;
@@ -5516,7 +5462,6 @@ var $author$project$Main$ToggleBeautify = {$: 3};
 var $author$project$Main$ToggleFilter = function (a) {
 	return {$: 0, a: a};
 };
-var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -5648,16 +5593,13 @@ var $author$project$Main$countFilterType = F2(
 			A2(
 				$elm$core$List$filter,
 				function (e) {
-					return (!e.aa) && _Utils_eq(
+					return (!e.W) && _Utils_eq(
 						$author$project$Main$getGenericType(e.f),
 						targetType);
 				},
 				entries));
 	});
 var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$html$Html$Attributes$download = function (fileName) {
-	return A2($elm$html$Html$Attributes$stringProperty, 'download', fileName);
-};
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
@@ -5668,14 +5610,14 @@ var $elm$core$String$dropRight = F2(
 var $author$project$Main$filterEntries = F2(
 	function (opts, entries) {
 		var matchesSearch = function (entry) {
-			return $elm$core$String$isEmpty(opts.w) ? true : A2(
+			return $elm$core$String$isEmpty(opts.x) ? true : A2(
 				$elm$core$String$contains,
-				$elm$core$String$toLower(opts.w),
+				$elm$core$String$toLower(opts.x),
 				$elm$core$String$toLower(entry.f));
 		};
 		var matchesCategories = function (entry) {
 			var gtype = $author$project$Main$getGenericType(entry.f);
-			var anyActive = opts.v || (opts.B || (opts.y || (opts.A || opts.C)));
+			var anyActive = opts.v || (opts.C || (opts.z || (opts.B || opts.D)));
 			if (!anyActive) {
 				return true;
 			} else {
@@ -5683,20 +5625,20 @@ var $author$project$Main$filterEntries = F2(
 					case 'code':
 						return opts.v;
 					case 'markup':
-						return opts.B;
-					case 'images':
-						return opts.y;
-					case 'locales':
-						return opts.A;
-					default:
 						return opts.C;
+					case 'images':
+						return opts.z;
+					case 'locales':
+						return opts.B;
+					default:
+						return opts.D;
 				}
 			}
 		};
 		return A2(
 			$elm$core$List$filter,
 			function (e) {
-				return (!e.aa) && (matchesSearch(e) && matchesCategories(e));
+				return (!e.W) && (matchesSearch(e) && matchesCategories(e));
 			},
 			entries);
 	});
@@ -5723,12 +5665,6 @@ var $author$project$Main$formatByteSizeSuffix = function (fileSize) {
 		$elm$core$Basics$round(fileSize / 1000)) + ' KB') : ((fileSize < 1000000000) ? ($elm$core$String$fromInt(
 		$elm$core$Basics$round(fileSize / 1000000)) + ' MB') : ($elm$core$String$fromInt(
 		$elm$core$Basics$round(fileSize / 1000000000)) + ' GB')));
-};
-var $elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
 };
 var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
@@ -5829,6 +5765,7 @@ var $elm$html$Html$Events$onSubmit = function (msg) {
 			$elm$json$Json$Decode$succeed(msg)));
 };
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
+var $elm$html$Html$pre = _VirtualDom_node('pre');
 var $elm$virtual_dom$VirtualDom$property = F2(
 	function (key, value) {
 		return A2(
@@ -5852,13 +5789,13 @@ var $author$project$Main$view = function (model) {
 		A2(
 			$elm$core$List$map,
 			function ($) {
-				return $.Z;
+				return $.U;
 			},
 			filtered));
 	var fileItem = function (entry) {
 		var isSelected = _Utils_eq(
 			$elm$core$Maybe$Just(entry.f),
-			model.F);
+			model.G);
 		var baseName = A2(
 			$elm$core$Maybe$withDefault,
 			entry.f,
@@ -5919,12 +5856,12 @@ var $author$project$Main$view = function (model) {
 						[
 							$elm$html$Html$Attributes$class('file-size'),
 							$elm$html$Html$Attributes$title(
-							$author$project$Main$formatByteSize(entry.Z) + ' bytes')
+							$author$project$Main$formatByteSize(entry.U) + ' bytes')
 						]),
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							$author$project$Main$formatByteSizeSuffix(entry.Z))
+							$author$project$Main$formatByteSizeSuffix(entry.U))
 						]))
 				]));
 	};
@@ -5949,7 +5886,7 @@ var $author$project$Main$view = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$Events$onSubmit(
-								$author$project$Main$SearchInput(model.g.w))
+								$author$project$Main$SearchInput(model.g.x))
 							]),
 						_List_fromArray(
 							[
@@ -5959,11 +5896,10 @@ var $author$project$Main$view = function (model) {
 									[
 										$elm$html$Html$Attributes$id('file-filter'),
 										$elm$html$Html$Attributes$type_('text'),
-										$elm$html$Html$Attributes$placeholder('filter (regex) ! file search'),
-										$elm$html$Html$Attributes$title('File filter (case-insensitive). Formats:\n1. [filename filter regexp]\n2. [filename filter regexp]!file content search term (case-insensitive)\n3. [filename filter regexp]!case:file content search term (case-sensitive)\n4. [filename filter regexp]!regexp:filter content regexp (case-sensitive)\n5. [filename filter regexp]!iregexp:filter content regexp (case-insensitive)\nThe filename filter is optional, \'!search term\' can also be used directly to search in all files.'),
-										$elm$html$Html$Attributes$value(model.g.w),
-										$elm$html$Html$Events$onInput($author$project$Main$SearchInput),
-										A2($elm$html$Html$Attributes$attribute, 'list', 'file-filter-patterns')
+										$elm$html$Html$Attributes$placeholder('Filter files by name'),
+										$elm$html$Html$Attributes$title('Filter files by name'),
+										$elm$html$Html$Attributes$value(model.g.x),
+										$elm$html$Html$Events$onInput($author$project$Main$SearchInput)
 									]),
 								_List_Nil),
 								A2(
@@ -5979,7 +5915,7 @@ var $author$project$Main$view = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$Attributes$type_('checkbox'),
-												$elm$html$Html$Attributes$checked(model.g.y),
+												$elm$html$Html$Attributes$checked(model.g.z),
 												$elm$html$Html$Events$onCheck(
 												function (_v0) {
 													return $author$project$Main$ToggleFilter(2);
@@ -6067,7 +6003,7 @@ var $author$project$Main$view = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$Attributes$type_('checkbox'),
-												$elm$html$Html$Attributes$checked(model.g.B),
+												$elm$html$Html$Attributes$checked(model.g.C),
 												$elm$html$Html$Events$onCheck(
 												function (_v2) {
 													return $author$project$Main$ToggleFilter(1);
@@ -6111,7 +6047,7 @@ var $author$project$Main$view = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$Attributes$type_('checkbox'),
-												$elm$html$Html$Attributes$checked(model.g.A),
+												$elm$html$Html$Attributes$checked(model.g.B),
 												$elm$html$Html$Events$onCheck(
 												function (_v3) {
 													return $author$project$Main$ToggleFilter(3);
@@ -6155,7 +6091,7 @@ var $author$project$Main$view = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$Attributes$type_('checkbox'),
-												$elm$html$Html$Attributes$checked(model.g.C),
+												$elm$html$Html$Attributes$checked(model.g.D),
 												$elm$html$Html$Events$onCheck(
 												function (_v4) {
 													return $author$project$Main$ToggleFilter(4);
@@ -6186,97 +6122,7 @@ var $author$project$Main$view = function (model) {
 													A2($author$project$Main$countFilterType, 'misc', model.m)))
 											]))
 									]))
-							])),
-						A2(
-						$elm$html$Html$span,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$id('file-filter-feedback')
-							]),
-						_List_Nil),
-						function () {
-						var _v5 = model.O;
-						if (!_v5.$) {
-							var url = _v5.a;
-							return A2(
-								$elm$html$Html$a,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$id('webstore-link'),
-										$elm$html$Html$Attributes$href(url),
-										$elm$html$Html$Attributes$title(url)
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Listing')
-									]));
-						} else {
-							return $elm$html$Html$text('');
-						}
-					}(),
-						function () {
-						var _v6 = model.J;
-						if (!_v6.$) {
-							var url = _v6.a;
-							return A2(
-								$elm$html$Html$a,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$id('download-link'),
-										$elm$html$Html$Attributes$href(url),
-										$elm$html$Html$Attributes$download(model.Q),
-										$elm$html$Html$Attributes$title('Download zip file as ' + model.Q)
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Download')
-									]));
-						} else {
-							return $elm$html$Html$text('');
-						}
-					}(),
-						function () {
-						var _v7 = _Utils_Tuple2(model.I, model.H);
-						if ((!_v7.a.$) && (!_v7.b.$)) {
-							var url = _v7.a.a;
-							var name = _v7.b.a;
-							return A2(
-								$elm$html$Html$a,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$id('download-link-crx'),
-										$elm$html$Html$Attributes$href(url),
-										$elm$html$Html$Attributes$download(name),
-										$elm$html$Html$Attributes$title('Download original CRX file as ' + name)
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('CRX')
-									]));
-						} else {
-							return $elm$html$Html$text('');
-						}
-					}(),
-						function () {
-						var _v8 = model.L;
-						if (!_v8.$) {
-							var url = _v8.a;
-							return A2(
-								$elm$html$Html$a,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$id('open-crxviewer'),
-										$elm$html$Html$Attributes$href(url),
-										$elm$html$Html$Attributes$title('View the source of another extension or zip file')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Open')
-									]));
-						} else {
-							return $elm$html$Html$text('');
-						}
-					}()
+							]))
 					])),
 				A2(
 				$elm$html$Html$div,
@@ -6343,9 +6189,9 @@ var $author$project$Main$view = function (model) {
 						_List_fromArray(
 							[
 								function () {
-								var _v9 = model.F;
-								if (!_v9.$) {
-									var path = _v9.a;
+								var _v5 = model.G;
+								if (!_v5.$) {
+									var path = _v5.a;
 									return A2(
 										$elm$html$Html$div,
 										_List_fromArray(
@@ -6363,7 +6209,7 @@ var $author$project$Main$view = function (model) {
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														model.z ? 'Show original code' : 'Show beautified code')
+														model.A ? 'Show original code' : 'Show beautified code')
 													])),
 												A2(
 												$elm$html$Html$button,
@@ -6374,7 +6220,7 @@ var $author$project$Main$view = function (model) {
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														model.T ? 'Hide analysis' : 'Show analysis')
+														model.O ? 'Hide analysis' : 'Show analysis')
 													]))
 											]));
 								} else {
@@ -6391,7 +6237,7 @@ var $author$project$Main$view = function (model) {
 						_List_fromArray(
 							[
 								function () {
-								if (model.k && (!$elm$core$List$isEmpty(model.m))) {
+								if (model.l && (!$elm$core$List$isEmpty(model.m))) {
 									return A2(
 										$elm$html$Html$div,
 										_List_fromArray(
@@ -6403,21 +6249,29 @@ var $author$project$Main$view = function (model) {
 												$elm$html$Html$text('Loading...')
 											]));
 								} else {
-									var _v10 = model.S;
-									if (!_v10.$) {
-										var html = _v10.a;
-										return A3(
-											$elm$html$Html$node,
-											'pre',
+									var _v6 = model.N;
+									if (!_v6.$) {
+										var html = _v6.a;
+										return A2(
+											$elm$html$Html$pre,
 											_List_fromArray(
 												[
-													$elm$html$Html$Attributes$class('linenums auto-wordwrap'),
-													A2(
-													$elm$html$Html$Attributes$property,
-													'innerHTML',
-													$elm$json$Json$Encode$string(html))
+													$elm$html$Html$Attributes$class('linenums auto-wordwrap')
 												]),
-											_List_Nil);
+											_List_fromArray(
+												[
+													A3(
+													$elm$html$Html$node,
+													'highlighted-source',
+													_List_fromArray(
+														[
+															A2(
+															$elm$html$Html$Attributes$property,
+															'highlightedHtml',
+															$elm$json$Json$Encode$string(html))
+														]),
+													_List_Nil)
+												]));
 									} else {
 										return A2(
 											$elm$html$Html$div,
@@ -6428,7 +6282,7 @@ var $author$project$Main$view = function (model) {
 											_List_fromArray(
 												[
 													$elm$html$Html$text(
-													A2($elm$core$Maybe$withDefault, 'Select a file to inspect', model.r))
+													A2($elm$core$Maybe$withDefault, 'Select a file to inspect', model.w))
 												]));
 									}
 								}
@@ -6438,5 +6292,5 @@ var $author$project$Main$view = function (model) {
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
-	{aS: $author$project$Main$init, aZ: $author$project$Main$subscriptions, a$: $author$project$Main$update, a1: $author$project$Main$view});
+	{aM: $author$project$Main$init, aS: $author$project$Main$subscriptions, aU: $author$project$Main$update, aV: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$value)(0)}});}(this));

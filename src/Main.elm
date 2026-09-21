@@ -12,16 +12,10 @@ import Json.Encode as E
 -- Ports definitions
 
 
-port requestZipContents : String -> Cmd msg
-
-
 port requestFileContent : { path : String, beautify : Bool } -> Cmd msg
 
 
 port requestHighlight : { path : String, content : String } -> Cmd msg
-
-
-port saveSetting : { key : String, value : String } -> Cmd msg
 
 
 port zipLoaded : (D.Value -> msg) -> Sub msg
@@ -34,9 +28,6 @@ port fileContentReceived : (D.Value -> msg) -> Sub msg
 
 
 port highlightedReceived : (D.Value -> msg) -> Sub msg
-
-
-port settingsLoaded : (D.Value -> msg) -> Sub msg
 
 
 type alias ZipEntry =
@@ -66,12 +57,6 @@ type alias Model =
     , filterOptions : FilterOptions
     , isLoading : Bool
     , errorMessage : Maybe String
-    , webstoreUrl : Maybe String
-    , downloadUrl : Maybe String
-    , downloadName : String
-    , crxDownloadUrl : Maybe String
-    , crxDownloadName : Maybe String
-    , openViewerUrl : Maybe String
     }
 
 
@@ -89,12 +74,10 @@ type Msg
     | SelectFile String
     | ToggleBeautify
     | ToggleAnalysis
-    | RequestZip String
     | HandleZipLoaded D.Value
     | HandleZipError String
     | HandleFileContent D.Value
     | HandleHighlighted D.Value
-    | HandleSettings D.Value
 
 
 init : D.Value -> ( Model, Cmd Msg )
@@ -115,12 +98,6 @@ init _ =
             }
       , isLoading = True
       , errorMessage = Nothing
-      , webstoreUrl = Nothing
-      , downloadUrl = Nothing
-      , downloadName = "extension.zip"
-      , crxDownloadUrl = Nothing
-      , crxDownloadName = Nothing
-      , openViewerUrl = Nothing
       }
     , Cmd.none
     )
@@ -185,27 +162,17 @@ update msg model =
         ToggleAnalysis ->
             ( { model | showAnalysis = not model.showAnalysis }, Cmd.none )
 
-        RequestZip url ->
-            ( { model | isLoading = True, errorMessage = Nothing }, requestZipContents url )
-
         HandleZipLoaded val ->
-            case D.decodeValue metadataDecoder val of
-                Ok meta ->
-                    ( { model
-                        | files = meta.entries
-                        , webstoreUrl = meta.webstoreUrl
-                        , downloadUrl = meta.downloadUrl
-                        , downloadName = meta.zipname
-                        , crxDownloadUrl = meta.crxDownloadUrl
-                        , crxDownloadName = meta.crxDownloadName
-                        , openViewerUrl = meta.openViewerUrl
-                        , isLoading = False
-                      }
-                    , Cmd.none
-                    )
+            let
+                decoder =
+                    D.list (D.map3 ZipEntry (D.field "path" D.string) (D.field "size" D.int) (D.field "isDirectory" D.bool))
+            in
+            case D.decodeValue decoder val of
+                Ok parsedFiles ->
+                    ( { model | files = parsedFiles, isLoading = False }, Cmd.none )
 
-                Err err ->
-                    ( { model | errorMessage = Just ("Failed to parse zip metadata: " ++ D.errorToString err), isLoading = False }, Cmd.none )
+                Err _ ->
+                    ( { model | errorMessage = Just "Failed to parse files list", isLoading = False }, Cmd.none )
 
         HandleZipError err ->
             ( { model | errorMessage = Just err, isLoading = False }, Cmd.none )
@@ -241,10 +208,6 @@ update msg model =
                 Err _ ->
                     ( { model | errorMessage = Just "Failed to render syntax highlighting", isLoading = False }, Cmd.none )
 
-        HandleSettings _ ->
-            -- TODO: implement settings loading logic if needed
-            ( model, Cmd.none )
-
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
@@ -253,7 +216,6 @@ subscriptions _ =
         , zipLoadError HandleZipError
         , fileContentReceived HandleFileContent
         , highlightedReceived HandleHighlighted
-        , settingsLoaded HandleSettings
         ]
 
 
@@ -408,11 +370,10 @@ view model =
                 [ input
                     [ id "file-filter"
                     , type_ "text"
-                    , placeholder "filter (regex) ! file search"
-                    , title "File filter (case-insensitive). Formats:\n1. [filename filter regexp]\n2. [filename filter regexp]!file content search term (case-insensitive)\n3. [filename filter regexp]!case:file content search term (case-sensitive)\n4. [filename filter regexp]!regexp:filter content regexp (case-sensitive)\n5. [filename filter regexp]!iregexp:filter content regexp (case-insensitive)\nThe filename filter is optional, '!search term' can also be used directly to search in all files."
+                    , placeholder "Filter files by name"
+                    , title "Filter files by name"
                     , value model.filterOptions.fileSearch
                     , onInput SearchInput
-                    , attribute "list" "file-filter-patterns"
                     ]
                     []
                 , label [ title "Filter: Images" ]
@@ -471,31 +432,6 @@ view model =
                     , span [ class "gcount" ] [ text (String.fromInt (countFilterType "misc" model.files)) ]
                     ]
                 ]
-            , span [ id "file-filter-feedback" ] []
-            , case model.webstoreUrl of
-                Just url ->
-                    a [ id "webstore-link", href url, title url ] [ text "Listing" ]
-
-                Nothing ->
-                    text ""
-            , case model.downloadUrl of
-                Just url ->
-                    a [ id "download-link", href url, download model.downloadName, title ("Download zip file as " ++ model.downloadName) ] [ text "Download" ]
-
-                Nothing ->
-                    text ""
-            , case ( model.crxDownloadUrl, model.crxDownloadName ) of
-                ( Just url, Just name ) ->
-                    a [ id "download-link-crx", href url, download name, title ("Download original CRX file as " ++ name) ] [ text "CRX" ]
-
-                _ ->
-                    text ""
-            , case model.openViewerUrl of
-                Just url ->
-                    a [ id "open-crxviewer", href url, title "View the source of another extension or zip file" ] [ text "Open" ]
-
-                Nothing ->
-                    text ""
             ]
         , div [ id "left-panel" ]
             [ div [ class "content" ]
@@ -542,44 +478,14 @@ view model =
                   else
                     case model.selectedFileHtml of
                         Just html ->
-                            node "pre" [ class "linenums auto-wordwrap", property "innerHTML" (E.string html) ] []
+                            pre [ class "linenums auto-wordwrap" ]
+                                [ node "highlighted-source" [ property "highlightedHtml" (E.string html) ] [] ]
 
                         Nothing ->
                             div [ id "initial-status" ] [ text (Maybe.withDefault "Select a file to inspect" model.errorMessage) ]
                 ]
             ]
         ]
-
-
-type alias ZipMetadata =
-    { entries : List ZipEntry
-    , zipname : String
-    , downloadUrl : Maybe String
-    , crxDownloadUrl : Maybe String
-    , crxDownloadName : Maybe String
-    , webstoreUrl : Maybe String
-    , openViewerUrl : Maybe String
-    }
-
-
-metadataDecoder : D.Decoder ZipMetadata
-metadataDecoder =
-    D.map7 ZipMetadata
-        (D.field "entries" (D.list zipEntryDecoder))
-        (D.field "zipname" D.string)
-        (D.maybe (D.field "downloadUrl" D.string))
-        (D.maybe (D.field "crxDownloadUrl" D.string))
-        (D.maybe (D.field "crxDownloadName" D.string))
-        (D.maybe (D.field "webstoreUrl" D.string))
-        (D.maybe (D.field "openViewerUrl" D.string))
-
-
-zipEntryDecoder : D.Decoder ZipEntry
-zipEntryDecoder =
-    D.map3 ZipEntry
-        (D.field "path" D.string)
-        (D.field "size" D.int)
-        (D.field "isDirectory" D.bool)
 
 
 main : Program D.Value Model Msg

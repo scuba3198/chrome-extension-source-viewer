@@ -8,10 +8,9 @@
 /* exported cws_match_patterns, mea_match_pattern, ows_match_pattern, amo_match_patterns, atn_match_patterns */
 /* exported cws_pattern, mea_pattern, ows_pattern, amo_pattern, atn_pattern */
 /* exported can_viewsource_crx_url */
-/* exported get_crx_url, get_webstore_url, get_zip_name, is_not_crx_url, getParam */
+/* exported get_crx_url, get_zip_name */
 /* exported is_crx_download_url, is_webstore_url */
 /* exported get_amo_domain, get_amo_slug */
-/* exported get_equivalent_download_url */
 /* exported encodeQueryString */
 'use strict';
 
@@ -47,8 +46,6 @@ var amo_match_patterns = [
     '*://addons-dev.allizom.org/*addon/*',
     '*://*.addons-dev.allizom.org/*review/*',
 ];
-// Depends on: https://bugzilla.mozilla.org/show_bug.cgi?id=1620084
-var amo_xpi_cdn_pattern = /^https?:\/\/(?:addons\.cdn\.mozilla\.net|addons-dev-cdn\.allizom\.org)\/user-media\/addons\//;
 
 // Thunderbird
 var atn_pattern = /^https?:\/\/((?:addons|addons-stage)\.thunderbird\.net)\/.*?\/addon\/([^/?#]+)/;
@@ -183,31 +180,6 @@ function isChromeNotChromium() {
     }
 }
 
-// Get location of addon gallery for a given extension
-function get_webstore_url(url) {
-    // Keep logic in sync with is_webstore_url.
-    var cws = cws_pattern.exec(url) || cws_download_pattern.exec(url);
-    if (cws) {
-        return 'https://chromewebstore.google.com/detail/' + cws[1];
-    }
-    var mea = mea_pattern.exec(url) || mea_download_pattern.exec(url);
-    if (mea) {
-        return 'https://microsoftedge.microsoft.com/addons/detail/' + mea[1];
-    }
-    var ows = ows_pattern.exec(url) || ows_download_pattern.exec(url);
-    if (ows) {
-        return 'https://addons.opera.com/extensions/details/' + ows[1];
-    }
-    var amo = get_amo_slug(url);
-    if (amo) {
-        return 'https://' + get_amo_domain(url) + '/firefox/addon/' + amo;
-    }
-    var atn = atn_pattern.exec(url) || atn_download_pattern.exec(url);
-    if (atn) {
-        return 'https://' + atn[1] + '/thunderbird/addon/' + atn[2];
-    }
-}
-
 // Return the suggested name of the zip file.
 function get_zip_name(url, /*optional*/filename) {
     if (!filename) {
@@ -240,58 +212,9 @@ function get_amo_slug(url) {
     }
 }
 
-function is_cors_enabled_download_url(url) {
-    if (
-        // We're only interested in XPI files from AMO,
-        // which supports CORS as of March 2020:
-        // https://github.com/mozilla/addons-server/issues/9118
-        // The following matches the whole AMO domain, including non-CORS
-        // endpoints. That's fine since we only care about XPI URLs.
-        amo_domain_pattern.test(url) ||
-        // The full redirect chain should also allow CORS, including the CDN:
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=1620084
-        amo_xpi_cdn_pattern.test(url)
-    ) {
-        return true;
-    }
-    return false;
-}
-
-// Some environments enforce restrictions on the URLs that can be accessed.
-// This function rewrites the input URL to one that should serve exactly the
-// same result as the requested URL, sans restrictions.
-function get_equivalent_download_url(url) {
-    var requestUrl = url;
-    return requestUrl;
-}
-
 // Whether the URL is supported by crxviewer (used in the popup).
 function can_viewsource_crx_url(url) {
     return is_crx_download_url(url) || is_webstore_url(url);
-}
-
-// Whether the given URL is not a CRX file, with certainty.
-// Used to determine whether a file should pass through openCRXasZip (of lib/crx-to-zip.js).
-function is_not_crx_url(url) {
-    // Chromium-based browsers use CRX with certainty.
-    if (
-        cws_pattern.test(url) || cws_download_pattern.test(url) ||
-        mea_pattern.test(url) || mea_download_pattern.test(url) ||
-        ows_pattern.test(url) || ows_download_pattern.test(url) ||
-        /\.(crx|nex)\b/.test(url)
-    ) {
-        return false;
-    }
-    // Firefox-based browsers use XPI, which is not a CRX with certainty.
-    if (
-        amo_pattern.test(url) || amo_domain_pattern.test(url) ||
-        atn_pattern.test(url) || atn_download_pattern.test(url) ||
-        /\.xpi([#?]|$)/.test(url)
-    ) {
-        return true;
-    }
-    // Unsure: maybe CRX, maybe not.
-    return false;
 }
 
 // Whether the given URL is from a URL that is expected to serve the extension file.
@@ -305,31 +228,11 @@ function is_crx_download_url(url) {
 }
 
 function is_webstore_url(url) {
-    // Keep logic in sync with get_webstore_url.
     return cws_pattern.test(url) ||
         mea_pattern.test(url) ||
         ows_pattern.test(url) ||
         amo_pattern.test(url) ||
         atn_pattern.test(url);
-}
-
-// |name| should not contain special RegExp characters, except possibly maybe a '[]' at the end.
-// If |name| ends with a '[]', then the return value is an array. Otherwise the first match is
-// returned.
-function getParam(name, querystring) { // Assume name contains no RegEx-specific char
-    var haystack = querystring || location.search || location.hash;
-    var pattern, needle, match;
-    if (name.slice(-2, name.length) === '[]') {
-        pattern = new RegExp('[&?#]' + name.slice(0, -2) + '\\[\\]=([^&]*)', 'g');
-        var needles = [];
-        while ((match = pattern.exec(haystack)) !== null) {
-            needles.push(decodeURIComponent(match[1]));
-        }
-        return needles;
-    }
-    pattern = new RegExp('[&?#]' + name + '=([^&]*)');
-    needle = pattern.exec(haystack);
-    return needle && decodeURIComponent(needle[1]);
 }
 
 function encodeQueryString(params) {
@@ -350,4 +253,3 @@ function encodeQueryString(params) {
         return key + '=' + value;
     }
 }
-

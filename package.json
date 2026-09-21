@@ -1,11 +1,12 @@
 {
   "name": "crxviewer-elm",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "devDependencies": {
     "elm": "^0.19.1-5"
   },
   "scripts": {
-    "build": "elm make src/Main.elm --output=elm-compiled.js --optimize"
+    "build": "elm make src/Main.elm --output=elm-compiled.js --optimize",
+    "test": "node --test test/viewer.test.js"
   }
 }

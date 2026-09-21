@@ -12,6 +12,29 @@
 
 'use strict';
 
+// Keep filename suggestions scoped to ZIP downloads requested by our viewer.
+const zipFilenames = new Map();
+chrome.downloads.onDeterminingFilename.addListener(function(item, suggest) {
+    const filename = zipFilenames.get(item.url);
+    zipFilenames.delete(item.url);
+    suggest(filename ? { filename, conflictAction: 'uniquify' } : undefined);
+});
+chrome.runtime.onMessage.addListener(function(message, sender, respond) {
+    if (message.type !== 'download-zip' || sender.id !== chrome.runtime.id) return;
+    if (typeof message.url !== 'string' || !message.url.startsWith('blob:' + chrome.runtime.getURL('')) ||
+        typeof message.filename !== 'string' || !message.filename) {
+        respond({ error: 'Invalid ZIP download request' });
+        return;
+    }
+    zipFilenames.set(message.url, message.filename);
+    chrome.downloads.download({ url: message.url, filename: message.filename }, function(id) {
+        const error = chrome.runtime.lastError;
+        if (error) zipFilenames.delete(message.url);
+        respond(error ? { error: error.message } : { id });
+    });
+    return true;
+});
+
   // Work-around for crbug.com/1132684: static event_rules disappear after a
   // restart, so we register rules dynamically instead, on install.
 function registerEventRules() {
@@ -98,5 +121,3 @@ if (chrome.extension.inIncognitoContext) {
         }
     });
 }
-
-

@@ -1,25 +1,14 @@
 (function() {
     'use strict';
 
-    // Set zip workerScriptsPath so that zip.js knows where to find z-worker.js
-    if (typeof zip !== 'undefined') {
-        zip.workerScriptsPath = 'lib/zip.js/';
-    }
+    zip.workerScriptsPath = 'lib/zip.js/';
 
-    // Keep track of active object URLs for download links to prevent memory leaks
-    let currentZipObjectUrl = null;
-    let currentCrxObjectUrl = null;
-
-    function cleanupObjectUrls() {
-        if (currentZipObjectUrl) {
-            URL.revokeObjectURL(currentZipObjectUrl);
-            currentZipObjectUrl = null;
+    // Elm blocks innerHTML; only pass Prism's escaped output to this element.
+    customElements.define('highlighted-source', class extends HTMLElement {
+        set highlightedHtml(html) {
+            this.innerHTML = html;
         }
-        if (currentCrxObjectUrl) {
-            URL.revokeObjectURL(currentCrxObjectUrl);
-            currentCrxObjectUrl = null;
-        }
-    }
+    });
 
     // Helper to escape HTML characters (prevents HTML/XSS injection on Prism fallback)
     function escapeHtml(str) {
@@ -114,76 +103,6 @@
                 });
             }
         });
-
-        // Handle saving user setting
-        app.ports.saveSetting.subscribe(function(data) {
-            if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-                chrome.storage.sync.set({ [data.key]: data.value });
-            } else {
-                localStorage.setItem(data.key, data.value);
-            }
-        });
-
-        // Port trigger to read ZIP/CRX
-        app.ports.requestZipContents.subscribe(function(url) {
-            loadZip(url);
-        });
-
-        // Load initially stored settings
-        loadStoredSettings();
-    }
-
-    function loadStoredSettings() {
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-            chrome.storage.sync.get(null, function(items) {
-                if (chrome.runtime.lastError) return;
-                app.ports.settingsLoaded.send(items);
-            });
-        } else {
-            // Mock/localStorage load for testing
-            const items = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                items[key] = localStorage.getItem(key);
-            }
-            app.ports.settingsLoaded.send(items);
-        }
-    }
-
-    function handleAutoDownload(zipDownloadUrl, computedZipName) {
-        if (getParam('auto-download') === '1') {
-            if (typeof chrome !== 'undefined' && chrome.downloads) {
-                chrome.downloads.onCreated.addListener(function createdListener(downloadItem) {
-                    if (downloadItem.byExtensionId === chrome.runtime.id) {
-                        chrome.downloads.onCreated.removeListener(createdListener);
-                        const downloadId = downloadItem.id;
-                        chrome.downloads.onChanged.addListener(function changedListener(delta) {
-                            if (delta.id === downloadId && delta.state) {
-                                if (delta.state.current === 'complete' || delta.state.current === 'interrupted') {
-                                    chrome.downloads.onChanged.removeListener(changedListener);
-                                    window.close();
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-
-            const autoLink = document.createElement('a');
-            autoLink.href = zipDownloadUrl;
-            autoLink.download = computedZipName;
-            document.body.appendChild(autoLink);
-            autoLink.click();
-            document.body.removeChild(autoLink);
-
-            if (typeof chrome === 'undefined' || !chrome.downloads) {
-                setTimeout(function() {
-                    window.close();
-                }, 3000);
-            }
-            return true;
-        }
-        return false;
     }
 
     function loadZip(urlOrBlob) {
@@ -197,130 +116,59 @@
             activeZipReader = null;
         }
 
-        const crxUrlParam = getParam('crx');
-        const zipNameParam = getParam('zipname');
-
-        // Compute Webstore URL
-        let webstoreUrl = null;
-        if (crxUrlParam && typeof get_webstore_url !== 'undefined') {
-            webstoreUrl = get_webstore_url(crxUrlParam);
-        }
-
-        // Compute ZIP name
-        let computedZipName = 'extension.zip';
-        if (typeof get_zip_name !== 'undefined') {
-            computedZipName = get_zip_name(crxUrlParam || (typeof urlOrBlob === 'string' ? urlOrBlob : ''), zipNameParam);
-        } else if (zipNameParam) {
-            computedZipName = zipNameParam;
-        }
-
-        // Compute CRX name
-        const computedCrxName = computedZipName.replace(/\.zip$/i, '.crx');
-
-        // Compute Open Viewer URL
-        let openViewerUrl = 'crxviewer.html';
-        if (crxUrlParam && typeof encodeQueryString !== 'undefined') {
-            openViewerUrl += '?' + encodeQueryString({
-                noview: 'on',
-                crx: crxUrlParam
-            });
-        }
-
-        // Use openCRXasZip to safely handle both URLs and Blobs, as well as stripping CRX headers
-        if (typeof openCRXasZip !== 'undefined') {
-            openCRXasZip(urlOrBlob, function(zipBlob, publicKey, raw_crx_data) {
-                cleanupObjectUrls();
-                currentZipObjectUrl = URL.createObjectURL(zipBlob);
-                const zipDownloadUrl = currentZipObjectUrl;
-
-                if (handleAutoDownload(zipDownloadUrl, computedZipName)) {
-                    return;
+        openCRXasZip(urlOrBlob, function(zipBlob) {
+            if (getParam('auto-download') === '1') {
+                const url = URL.createObjectURL(zipBlob);
+                let downloadId;
+                function finish(item) {
+                    if (item.id !== downloadId) return;
+                    const state = typeof item.state === 'string' ? item.state : item.state && item.state.current;
+                    if (state !== 'complete' && state !== 'interrupted') return;
+                    chrome.downloads.onChanged.removeListener(finish);
+                    URL.revokeObjectURL(url);
+                    if (state === 'complete') window.close();
+                    else app.ports.zipLoadError.send('ZIP download interrupted. Please try again.');
                 }
-
-                let crxDownloadUrl = null;
-                if (raw_crx_data) {
-                    const crxBlob = new Blob([raw_crx_data], { type: 'application/octet-stream' });
-                    currentCrxObjectUrl = URL.createObjectURL(crxBlob);
-                    crxDownloadUrl = currentCrxObjectUrl;
-                }
-
-                zip.createReader(new zip.BlobReader(zipBlob), function(zipReader) {
-                    activeZipReader = zipReader;
-                    zipReader.getEntries(function(entries) {
-                        loadedEntries = entries;
-                        const mapped = entries.map(e => ({
-                            path: e.filename,
-                            size: e.uncompressedSize,
-                            isDirectory: e.directory
-                        }));
-                        app.ports.zipLoaded.send({
-                            entries: mapped,
-                            zipname: computedZipName,
-                            downloadUrl: zipDownloadUrl,
-                            crxDownloadUrl: crxDownloadUrl,
-                            crxDownloadName: computedCrxName,
-                            webstoreUrl: webstoreUrl,
-                            openViewerUrl: openViewerUrl
-                        });
+                chrome.downloads.onChanged.addListener(finish);
+                chrome.runtime.sendMessage({ type: 'download-zip', url, filename: getParam('zipname') || 'extension.zip' }, function(result) {
+                    const error = chrome.runtime.lastError?.message || result?.error;
+                    const id = result?.id;
+                    if (error || id === undefined) {
+                        chrome.downloads.onChanged.removeListener(finish);
+                        URL.revokeObjectURL(url);
+                        app.ports.zipLoadError.send('ZIP download failed: ' + (error || 'No download ID'));
+                        return;
+                    }
+                    downloadId = id;
+                    // Catch a download that finished before its ID was returned.
+                    chrome.downloads.search({ id }, function(items) {
+                        if (items && items[0]) finish(items[0]);
                     });
-                }, function(error) {
-                    app.ports.zipLoadError.send("Reader creation failed: " + String(error));
+                });
+                return;
+            }
+            zip.createReader(new zip.BlobReader(zipBlob), function(zipReader) {
+                activeZipReader = zipReader;
+                zipReader.getEntries(function(entries) {
+                    loadedEntries = entries;
+                    const mapped = entries.map(e => ({
+                        path: e.filename,
+                        size: e.uncompressedSize,
+                        isDirectory: e.directory
+                    }));
+                    app.ports.zipLoaded.send(mapped);
                 });
             }, function(error) {
-                app.ports.zipLoadError.send("CRX unpacking failed: " + String(error));
+                app.ports.zipLoadError.send("Reader creation failed: " + String(error));
             });
-        } else {
-            // Fallback if openCRXasZip is not loaded
-            const processBlob = function(blob) {
-                cleanupObjectUrls();
-                currentZipObjectUrl = URL.createObjectURL(blob);
-                const zipDownloadUrl = currentZipObjectUrl;
-
-                if (handleAutoDownload(zipDownloadUrl, computedZipName)) {
-                    return;
-                }
-
-                zip.createReader(new zip.BlobReader(blob), function(zipReader) {
-                    activeZipReader = zipReader;
-                    zipReader.getEntries(function(entries) {
-                        loadedEntries = entries;
-                        const mapped = entries.map(e => ({
-                            path: e.filename,
-                            size: e.uncompressedSize,
-                            isDirectory: e.directory
-                        }));
-                        app.ports.zipLoaded.send({
-                            entries: mapped,
-                            zipname: computedZipName,
-                            downloadUrl: zipDownloadUrl,
-                            crxDownloadUrl: null,
-                            crxDownloadName: null,
-                            webstoreUrl: webstoreUrl,
-                            openViewerUrl: openViewerUrl
-                        });
-                    });
-                }, function(error) {
-                    app.ports.zipLoadError.send(String(error));
-                });
-            };
-
-            if (urlOrBlob instanceof Blob) {
-                processBlob(urlOrBlob);
-            } else if (typeof urlOrBlob === 'string') {
-                fetch(urlOrBlob)
-                    .then(r => r.blob())
-                    .then(processBlob)
-                    .catch(e => {
-                        app.ports.zipLoadError.send("Failed to fetch zip: " + String(e));
-                    });
-            }
-        }
+        }, function(error) {
+            app.ports.zipLoadError.send("CRX unpacking failed: " + String(error));
+        });
     }
 
     // Hook initial load from parameters safely
     function handleInitialLoad() {
         const crx_url = getParam('crx');
-        const zipname = getParam('zipname');
         const blob_url = getParam('blob');
 
         if (blob_url) {
@@ -338,7 +186,6 @@
 
     // Cleanup active resources on page unload
     window.addEventListener('unload', () => {
-        cleanupObjectUrls();
         if (activeZipReader) {
             try {
                 activeZipReader.close();
